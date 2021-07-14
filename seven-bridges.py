@@ -3,7 +3,8 @@ import random
 
 NUM_LAND = 4
 NUM_BRIDGE = 7
-RANDOM = False
+RANDOM = True
+EXAMPLE_CODE = True
 
 t = turtle.Turtle()
 t.hideturtle()
@@ -29,6 +30,18 @@ def get_orth(e1, e2, n):
   md_point = ( (e1[0]+e2[0])/2 , (e1[1]+e2[1])/2 )
   return ( md_point[0] + orth_unit_vector[0], md_point[1] + orth_unit_vector[1] )
 
+def draw_bridge(e1, e2, n, w=2):
+    t.setposition(e1[0], e1[1])
+    t.pendown()
+    if n == 1:
+      x, y = get_orth(e1, e2, 1)
+      t.goto(x*w, y*w)
+    elif n == 2:
+      x, y = get_orth(e1, e2, -1)
+
+    t.goto(e2[0],e2[1])
+    t.penup()
+
 land_coords = []
 bridge_list = []
 
@@ -41,33 +54,14 @@ def build_bridge(e1, e2, w=2):
   if current_bridges == 3:
     print("oops)")
     return False #no more room for bridges!
-  elif current_bridges == 0:
-    t.setposition(e1[0], e1[1])
-    t.pendown()
-    t.goto(e2[0],e2[1])
-    t.penup()
-    bridge_list.append((e1,e2))
-  elif current_bridges == 1:
-    t.setposition(e1[0], e1[1])
-    x, y = get_orth(e1, e2, 1)
-    t.pendown()
-    t.goto(x*w, y*w)
-    t.goto(e2[0], e2[1])
-    t.penup()
-    bridge_list.append((e1,e2))
-  elif current_bridges == 2:
-    t.setposition(e1[0], e1[1])
-    x, y = get_orth(e1, e2, -1)
-    t.pendown()
-    t.goto(x*w, y*w)
-    t.goto(e2[0], e2[1])
-    t.penup()
-    bridge_list.append((e1,e2))
+
+  draw_bridge(e1, e2, current_bridges)
+  bridge_list.append((e1,e2))
   return True
 
 t.penup()
 if RANDOM:
-  
+  print("placing city sections")  
   for v in range(NUM_LAND):
 
     x = random.randint(-225,225)
@@ -75,7 +69,7 @@ if RANDOM:
     t.setposition(x,y)
     t.dot(10)
     land_coords.append((x,y))
-
+  print("building bridges")
   for e in range(NUM_BRIDGE):
 
     e1 = e2 = None
@@ -85,7 +79,7 @@ if RANDOM:
 
     build_bridge(e1, e2)
 
-    print(bridge_list)
+    #print(bridge_list)
 else:
   #rough approximation of Königsberg
   L1 = (0, 200)
@@ -94,6 +88,7 @@ else:
   L4 = (-200, 0)
 
   for L in [L1, L2, L3, L4]:
+    land_coords.append(L)
     t.setposition(L[0], L[1])
     t.dot(10)
 
@@ -105,3 +100,70 @@ else:
   build_bridge(L3, L4)
   build_bridge(L3, L4)
 
+  #uncomment to make a euler path
+  #build_bridge(L2, L4)
+  #NUM_BRIDGE += 1
+
+def dfs(edges, node, path):
+
+  neighbors = [ i for i in range(NUM_LAND) if edges[node][i] ]
+  if neighbors:
+    for n in neighbors:
+
+      edges[node][n] -= 1
+      edges[n][node] -= 1
+
+      path.append(n)
+
+      if not dfs(edges, n, path):
+        edges[node][n] += 1
+        edges[n][node] += 1
+        path.pop()
+      else:
+        return True
+      return False
+  else:
+
+    if sum([sum(edges[n]) for n in range(NUM_LAND)]) == 0:
+      print("path found")
+      return True
+    return False
+
+
+def run():
+  path = []
+  edges = [[0]*NUM_LAND for n in land_coords]
+
+  for b in bridge_list:
+    edges[land_coords.index(b[0])][land_coords.index(b[1])] += 1
+    edges[land_coords.index(b[1])][land_coords.index(b[0])] += 1
+
+  #print(edges)
+  if EXAMPLE_CODE:
+
+    if dfs(edges, 0, path):
+      t.pencolor("red")
+      t.shape("turtle")
+      t.setposition(land_coords[0][0], land_coords[0][1])
+      t.showturtle()
+      t.pendown()
+      node = 0
+      for p in path:
+        current_bridges = edges[node][p]
+        draw_bridge(land_coords[node], land_coords[p], current_bridges)
+        edges[node][p] += 1
+        edges[p][node] += 1
+        node = p
+    else:
+      print("no path")
+      t.setposition(0,0)
+      t.write("no path found", align="center", font=("Arial", 24, "normal"))
+  else:
+    pass
+#####################
+# Here is where you can
+# Write some code
+# Of your very own
+#####################
+
+run()

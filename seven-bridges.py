@@ -1,10 +1,19 @@
 import turtle
 import random
 
+######################
+# This code is a demonstration of the Seven Bridges of Königsberg problem
+# the field of Graph Theory began here!
+# Read more: https://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg
+######################
+
 NUM_LAND = 4
 NUM_BRIDGE = 7
-RANDOM = True
+#Change these to alter the number of bridges and city sections
+RANDOM = False
+#Change this to True to get a random layout
 EXAMPLE_CODE = True
+#Change this to False to run your own code
 
 t = turtle.Turtle()
 t.hideturtle()
@@ -31,6 +40,7 @@ def get_orth(e1, e2, n):
   return ( md_point[0] + orth_unit_vector[0], md_point[1] + orth_unit_vector[1] )
 
 def draw_bridge(e1, e2, n, w=2):
+#draws a path between two nodes, takes a curve if straight path already exists
     t.setposition(e1[0], e1[1])
     t.pendown()
     if n == 1:
@@ -61,6 +71,7 @@ def build_bridge(e1, e2, w=2):
 
 t.penup()
 if RANDOM:
+#randomly generate a city layout, may or may not contain an Euler Path
   print("placing city sections")  
   for v in range(NUM_LAND):
 
@@ -69,6 +80,7 @@ if RANDOM:
     t.setposition(x,y)
     t.dot(10)
     land_coords.append((x,y))
+
   print("building bridges")
   for e in range(NUM_BRIDGE):
 
@@ -81,6 +93,7 @@ if RANDOM:
 
     #print(bridge_list)
 else:
+
   #rough approximation of Königsberg
   L1 = (0, 200)
   L2 = (200, 0)
@@ -100,11 +113,12 @@ else:
   build_bridge(L3, L4)
   build_bridge(L3, L4)
 
-  #uncomment to make a euler path
+  #uncomment to make an Euler path
   #build_bridge(L2, L4)
   #NUM_BRIDGE += 1
 
 def dfs(edges, node, path):
+  #attempt to find an Euler path
 
   neighbors = [ i for i in range(NUM_LAND) if edges[node][i] ]
   if neighbors:
@@ -142,7 +156,8 @@ def run():
   if EXAMPLE_CODE:
 
     if dfs(edges, 0, path):
-      t.pencolor("red")
+      #trace the found Euler path
+      t.color("red", "red")
       t.shape("turtle")
       t.setposition(land_coords[0][0], land_coords[0][1])
       t.showturtle()
